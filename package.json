@@ -1,0 +1,24 @@
+{
+  "name": "curso",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Pruebados.js",
+  "scripts": {
+    "testPruebados:chrome": "testcafe chrome ./Pruebados.js",
+    "testTwoPages:chrome": "testcafe chrome ./TwoPages.js",
+    "testSightXMenu:chrome": "testcafe chrome ./SightXTest-Menu.js",
+    "testSightXPOM:chrome": "testcafe chrome ./SightXTest-POM.js",
+    "testSightClick:chrome": "testcafe chrome ./SightXTest-ClickMenu.js",
+    "testClick:chrome": "testcafe chrome ./ClickMenu.js",
+    "testRequestaDemo:chrome": "testcafe chrome ./SightXTest-ReqaDemo.js",
+    "testClickSilent:chrome-headless": "testcafe chrome:headless ./ClickMenu.js --reporter html:report.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "testcafe": "^3.7.2",
+    "testcafe-reporter-html": "^1.4.6",
+    "testcafe-reporter-json": "^2.2.0"
+  }
+}
