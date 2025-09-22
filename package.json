@@ -10,7 +10,8 @@
     "testSightXPOM:chrome": "testcafe chrome ./SightXTest-POM.js",
     "testSightClick:chrome": "testcafe chrome ./SightXTest-ClickMenu.js",
     "testClick:chrome": "testcafe chrome ./ClickMenu.js",
-    "testRequestaDemo:chrome": "testcafe chrome ./SightXTest-ReqaDemo.js",
+    "testClickError:chrome": "testcafe chrome ./ClickMenu-Error.js",
+    "testRequestDemo:chrome": "testcafe chrome ./SightXTest-RequestDemo.js",
     "testClickSilent:chrome-headless": "testcafe chrome:headless ./ClickMenu.js --reporter html:report.html"
   },
   "keywords": [],

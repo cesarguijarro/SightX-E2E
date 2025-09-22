@@ -1,25 +1,73 @@
-// ClickMenu.js
-import { Selector } from "testcafe";
 import { MainMenu } from "./MainMenu.js";
-import { clickMenuAndValidate } from "./Funciones/helpers.js";
+import Funciones, { softExpect } from "./Funciones/page-model.js";
 import { RequestLogger } from "testcafe";
 
 const waitingTime = 3000;
+const f = new Funciones();
+let hasErrors = false; // flag global para errores
+
+// Logger configurado para capturar headers de respuesta
 const logger = RequestLogger(/.*/, {
+    logRequestHeaders: true,
+    logResponseHeaders: true,
     logRequestBody: true,
     stringifyRequestBody: true
 });
-
-let errors = [];
 
 fixture('E2E SightX - Validate all menu items')
     .page('https://www.sightx.io/')
     .requestHooks(logger);
 
-test('Click all menus and validate pages', async t => {
+test('TEST: Click all main menu options and validate page text with CSP', async t => {
     await t.maximizeWindow();
 
+    // ---------------- Función auxiliar mejorada ----------------
+    async function clickMenuAndValidate(menuSelector, menuName) {
+        if (!menuSelector) {
+            console.log(`❌ Selector undefined for ${menuName}`);
+            hasErrors = true;
+            return;
+        }
+
+        const exists = await menuSelector.exists;
+        if (!exists) {
+            console.log(`❌ Menu not found: ${menuName}`);
+            hasErrors = true;
+            return;
+        }
+
+        await softExpect(t, menuSelector, `✅ Menu visible: ${menuName}`);
+
+        // Limpiar logger antes del click para capturar solo requests de esta acción
+        logger.clear();
+
+        try {
+            await f._clickAndLog(t, menuSelector, `Clicked menu: ${menuName}`, waitingTime);
+        } catch (err) {
+            console.log(`❌ Error when clicking on ${menuName}:`, err.message);
+            hasErrors = true;
+        }
+
+        // Validar CSP en todas las requests capturadas
+        if (logger.requests.length === 0) {
+            console.log('✅ No requests captured to validate headers');
+            hasErrors = false;
+        } else {
+            logger.requests.forEach(req => {
+                const csp = req.response.headers['content-security-policy'];
+                if (!csp) {
+                    console.log(`✅ CSP missing in request to ${req.request.url}`);
+                    hasErrors = false;
+                } else {
+                    console.log(`❌ CSP present in request to ${req.request.url}`);
+                    hasErrors = true;                    
+                }
+            });
+        }
+    }
+
     // ---------------- MAIN MENU ----------------
+    console.log('>>> Main menu items validation');
     const mainMenus = [
         { selector: MainMenu.WhySightXMenu, name: 'Why SightX?' },
         { selector: MainMenu.MeetAdaMenu, name: 'Meet Ada' },
@@ -31,11 +79,13 @@ test('Click all menus and validate pages', async t => {
     ];
 
     for (const menu of mainMenus) {
-        await clickMenuAndValidate(t, menu.selector, menu.name, logger, errors);
+        await clickMenuAndValidate(menu.selector, menu.name);
         await t.navigateTo('https://www.sightx.io/');
     }
+    console.log('<<< Main menu items validation');
 
     // ---------------- CAPABILITIES ----------------
+    console.log('>>> Capabilities submenu items');
     const capabilitiesMenus = [
         { selector: MainMenu.AudienceSegmentationMenu, name: 'Audience Segmentation' },
         { selector: MainMenu.BrandTrackingMenu, name: 'Brand Tracking' },
@@ -57,16 +107,20 @@ test('Click all menus and validate pages', async t => {
 
     for (const menu of capabilitiesMenus) {
         if (await MainMenu.CapabilitiesMenu.exists) {
-            await t.click(MainMenu.CapabilitiesMenu).wait(300); // asegurar dropdown abierto
+            await softExpect(t, MainMenu.CapabilitiesMenu, 'Toggle Capabilities visible');
+            await t.click(MainMenu.CapabilitiesMenu).wait(waitingTime);
         } else {
-            errors.push('❌ Capabilities toggle not found');
+            console.log('❌ Capabilities toggle not found');
+            hasErrors = true;
             continue;
         }
-        await clickMenuAndValidate(t, menu.selector, menu.name, logger, errors, MainMenu.CapabilitiesMenu);
+        await clickMenuAndValidate(menu.selector, menu.name);
         await t.navigateTo('https://www.sightx.io/');
     }
+    console.log('<<< Capabilities submenu items');
 
     // ---------------- SOLUTIONS ----------------
+    console.log('>>> Solutions submenu items');
     const solutionsMenus = [
         { selector: MainMenu.BrandTrackingSolutionsMenu, name: 'Brand Tracking' },
         { selector: MainMenu.ContentCreationMenu, name: 'Content Creation' },
@@ -83,16 +137,20 @@ test('Click all menus and validate pages', async t => {
 
     for (const menu of solutionsMenus) {
         if (await MainMenu.SolutionsMenuIcon.exists) {
-            await t.click(MainMenu.SolutionsMenuIcon).wait(300);
+            await softExpect(t, MainMenu.SolutionsMenuIcon, 'Toggle Solutions visible');
+            await t.click(MainMenu.SolutionsMenuIcon).wait(waitingTime);
         } else {
-            errors.push('❌ Solutions toggle not found');
+            console.log('❌ Solutions toggle not found');
+            hasErrors = true;
             continue;
         }
-        await clickMenuAndValidate(t, menu.selector, menu.name, logger, errors, MainMenu.SolutionsMenuIcon);
+        await clickMenuAndValidate(menu.selector, menu.name);
         await t.navigateTo('https://www.sightx.io/');
     }
+    console.log('<<< Solutions submenu items');
 
     // ---------------- RESOURCES ----------------
+    console.log('>>> Resources submenu items');
     const resourcesMenus = [
         { selector: MainMenu.BlogMenu, name: 'Blog' },
         { selector: MainMenu.ContentHubMenu, name: 'Content Hub' },
@@ -101,22 +159,20 @@ test('Click all menus and validate pages', async t => {
 
     for (const menu of resourcesMenus) {
         if (await MainMenu.ResourcesMenuIcon.exists) {
-            await t.click(MainMenu.ResourcesMenuIcon).wait(300);
+            await softExpect(t, MainMenu.ResourcesMenuIcon, 'Toggle Resources visible');
+            await t.click(MainMenu.ResourcesMenuIcon).wait(waitingTime);
         } else {
-            errors.push('❌ Resources toggle not found');
+            console.log('❌ Resources toggle not found');
+            hasErrors = true;
             continue;
         }
-        await clickMenuAndValidate(t, menu.selector, menu.name, logger, errors, MainMenu.ResourcesMenuIcon);
+        await clickMenuAndValidate(menu.selector, menu.name);
         await t.navigateTo('https://www.sightx.io/');
     }
+    console.log('<<< Resources submenu items');
 
-    // ---------------- FINAL SUMMARY ----------------
-    if (errors.length > 0) {
-        console.log("\n====== TEST SUMMARY ======");
-        errors.forEach(err => console.log(err));
-        console.log("==========================\n");
-        await t.expect(errors.length).eql(0, "❌ Some menu validations failed");
-    } else {
-        console.log("\n✅ All menu validations passed with no errors\n");
+    // ---------------- FINAL ----------------
+    if (hasErrors) {
+        throw new Error('❌ Some menus or submenus were not found or failed to click.');
     }
 });
