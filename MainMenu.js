@@ -1,7 +1,7 @@
 import XPathSelector from "./Funciones/xpath-selector.js";
 
 export const MainMenu = {
-    Logo: XPathSelector('//img[@alt="Home"]'),
+    Home: XPathSelector('//img[@alt="Home"]'),
 
     // Menú principal
     WhySightXMenu: XPathSelector('//a[contains(text(),"Why SightX?")]'),

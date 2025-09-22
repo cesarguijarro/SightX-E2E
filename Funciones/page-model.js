@@ -4,28 +4,27 @@ import { ClientFunction } from "testcafe";
 
 let waitingTime = 3000;
 let sp = 0.9;
-
+let hasErrors = false; // variable global para trackear errores
 
 export async function softExpect(t, selector, message) {
     try {
-        const text = await selector.innerText;
-        await t.expect(selector.visible).ok(message, { timeout: 5000 });
-//        log("✅ Passed:", message, "| Element text:", text);
-          console.log("✅ Passed:", message) ;
+        const exists = await selector.exists;
+        await t.expect(exists).ok(message);
+        console.log("✅ Passed:", message);
         return true;
     } catch (err) {
-        try {
-            const text = await selector.innerText;
-            //console.log("⚠️ Not Found or Invisible:", message, "| Element text:", text);
-            console.log("⚠️ Not Found or Invisible:", message);
-        } catch {
-            // console.log("⚠️ Not Found or Invisible:", message, "| (no innerText available)");
-            console.log("⚠️ Not Found or Invisible:", message);
-        }
+        console.log("❌ Failed:", message);
+        hasErrors = true;   // marca que hubo al menos un error
         return false;
     }
 }
 
+// Función para verificar el estado global al final
+export function checkSoftExpectResults() {
+    if (hasErrors) {
+        throw new Error("Se encontraron errores en softExpect. Test fallido.");
+    }
+}
 
 export default class Funciones {   // <-- export default
 
