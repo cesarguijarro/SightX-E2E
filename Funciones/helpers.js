@@ -8,7 +8,7 @@ const waitingTime = 3000;
 const f = new Funciones();
 
 /**
- * Espera a que un submenu sea visible
+ * Wait for a submenu to be visible
  * @param {Selector} submenuSelector
  * @param {string} name
  */
@@ -18,7 +18,7 @@ export async function waitForSubmenuVisible(submenuSelector, name) {
 }
 
 /**
- * Hace click en un menú y valida la carga de la página y headers CSP
+ * Wait for a menu to be clickable and validate the page load and CSP headers
  * @param {TestController} t
  * @param {Selector} menuSelector
  * @param {string} menuName
@@ -47,7 +47,7 @@ export async function clickMenuAndValidate(t, menuSelector, menuName, logger, er
     try {
         await f._clickAndLog(t, menuSelector, `Clicked menu: ${menuName}`, waitingTime);
 
-        // Validación de que la nueva página tiene contenido
+        // Validation that the new page has content
         const body = Selector('body');
         await t
             .expect(body.exists).ok(`❌ Body not found after clicking ${menuName}`)
@@ -59,14 +59,14 @@ export async function clickMenuAndValidate(t, menuSelector, menuName, logger, er
         console.log(msg);
         errors.push(msg);
 
-        // Tomar screenshot solo en error
+        //  Take screenshot only on error
         const screenshotDir = path.join(process.cwd(), "screenshots", "errors");
         if (!fs.existsSync(screenshotDir)) fs.mkdirSync(screenshotDir, { recursive: true });
         const screenshotPath = path.join(screenshotDir, `${menuName.replace(/\s+/g,'_')}_${Date.now()}.png`);
         await t.takeScreenshot({ path: screenshotPath, fullPage: true });
     }
 
-    // Validar cabeceras CSP en la nueva página
+    // Validate CSP headers on the new page - content-security-policy
     const lastRequest = logger.requests[logger.requests.length - 1];
     const cspHeader = lastRequest?.response?.headers?.['content-security-policy'];
 

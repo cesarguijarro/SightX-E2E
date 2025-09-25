@@ -1,11 +1,11 @@
-import { t, Selector } from "testcafe";
+import { Selector, ClientFunction, t } from "testcafe";
 import XPathSelector from "./xpath-selector.js";
-import { ClientFunction } from "testcafe";
 
 let waitingTime = 3000;
 let sp = 0.9;
-let hasErrors = false; // variable global para trackear errores
+let hasErrors = false; // Global flag for softExpect failures
 
+// softExpect logs pass/fail, captures screenshots, and sets global error flag
 export async function softExpect(t, selector, message) {
     try {
         const exists = await selector.exists;
@@ -14,30 +14,36 @@ export async function softExpect(t, selector, message) {
         return true;
     } catch (err) {
         console.log("❌ Failed:", message);
-        hasErrors = true;   // marca que hubo al menos un error
+        hasErrors = true;
+
+        await t.takeScreenshot({
+            path: `screenshots/${Date.now()}-fail.png`,
+            fullPage: true
+        });
+
         return false;
     }
 }
 
-// Función para verificar el estado global al final
+// Returns whether there were any softExpect failures
+export function hasTestErrors() {
+    return hasErrors;
+}
+
+// Throws if there were any softExpect failures
 export function checkSoftExpectResults() {
     if (hasErrors) {
-        throw new Error("Se encontraron errores en softExpect. Test fallido.");
+        throw new Error("❌ Some menus/submenus failed. Test failed.");
     }
 }
 
-export default class Funciones {   // <-- export default
-
+export default class Funciones {
     async _MaxWindow(t, myTime = waitingTime) {
-        await t
-            .maximizeWindow()
-            .wait(myTime);
+        await t.maximizeWindow().wait(myTime);
     }
 
     async _MinWindow(t, myTime = waitingTime) {
-        await t
-            .minimizeWindow()
-            .wait(myTime);
+        await t.minimizeWindow().wait(myTime);
     }
 
     async _TypeText(t, select, myText, mySpeed = sp) {
@@ -53,9 +59,9 @@ export default class Funciones {   // <-- export default
     }
 
     async _clickAndLog(t, selector, message, waitTime = 3000) {
-    await t.click(selector).wait(waitTime);
-   //console.log(message);
-    }  
+        await t.click(selector).wait(waitTime);
+        console.log(message);
+    }
 
     async _ClickXPath(t, select) {
         const element = XPathSelector(select);
@@ -63,17 +69,11 @@ export default class Funciones {   // <-- export default
     }
 
     async _SelectOptionByText(t, selectElement, visibleText) {
-    await t
-        .click(selectElement) // Abre el dropdown
-        .click(selectElement.find('option').withText(visibleText));
+        await t.click(selectElement).click(selectElement.find('option').withText(visibleText));
     }
 
     async _ScrollPageBy(t, pixels) {
         const scrollBy = ClientFunction((yDelta) => window.scrollBy(0, yDelta));
         await scrollBy(pixels);
     }
-
-
-
-
 }

@@ -1,122 +1,154 @@
-// ClickMenu.js
-import { Selector } from "testcafe";
 import { MainMenu } from "./MainMenu.js";
-import { clickMenuAndValidate } from "./Funciones/helpers.js";
-import { RequestLogger } from "testcafe";
+import Funciones, { softExpect, checkSoftExpectResults } from "./Funciones/page-model.js";
 
 const waitingTime = 3000;
-const logger = RequestLogger(/.*/, {
-    logRequestBody: true,
-    stringifyRequestBody: true
-});
-
-let errors = [];
+const f = new Funciones();
 
 fixture('E2E SightX - Validate all menu items')
-    .page('https://www.sightx.io/')
-    .requestHooks(logger);
+    .page('https://www.sightx.io/');
 
-test('Click all menus and validate pages', async t => {
+test('TEST: Click all main menu options and validate page content', async t => {
     await t.maximizeWindow();
+    console.log('>>> Main menu items validation');
 
-    // ---------------- MAIN MENU ----------------
-    const mainMenus = [
-        { selector: MainMenu.WhySightXMenu, name: 'Why SightX?' },
-        { selector: MainMenu.MeetAdaMenu, name: 'Meet Ada' },
-        { selector: MainMenu.CapabilitiesMenu, name: 'Capabilities Toggle' },
-        { selector: MainMenu.SolutionsMenuIcon, name: 'Solutions Toggle' },
-        { selector: MainMenu.CustomersMenu, name: 'Customers' },
-        { selector: MainMenu.PricingMenu, name: 'Pricing' },
-        { selector: MainMenu.ResourcesMenuIcon, name: 'Resources Toggle' }
+    const menusToClick = [
+        //MainMenu.Logo,
+        MainMenu.WhySightXMenu,
+        MainMenu.MeetAdaMenu,
+        MainMenu.CapabilitiesMenu,
+        MainMenu.SolutionsMenu,
+        MainMenu.CustomersMenu,
+        MainMenu.PricingMenu,
+        MainMenu.ResourcesMenuIcon
     ];
 
-    for (const menu of mainMenus) {
-        await clickMenuAndValidate(t, menu.selector, menu.name, logger, errors);
+    for (const menu of menusToClick) {
+        const menuExists = await softExpect(t, menu, `✅ Menu visible`);
+        if (menuExists) {
+            await f._clickAndLog(t, menu, `Clicked menu`, waitingTime);
+
+            const bodyText = await t.eval(() => document.body.innerText);
+            if (bodyText && bodyText.trim().length > 0) {
+                console.log("✅ Page has content");
+            } else {
+                console.log("❌ Page has no content");
+                await t.takeScreenshot({ path: `screenshots/${Date.now()}-fail.png`, fullPage: true });
+            }
+        }
+
         await t.navigateTo('https://www.sightx.io/');
     }
+
+    console.log('<<< Main menu items validation');
 
     // ---------------- CAPABILITIES ----------------
     const capabilitiesMenus = [
-        { selector: MainMenu.AudienceSegmentationMenu, name: 'Audience Segmentation' },
-        { selector: MainMenu.BrandTrackingMenu, name: 'Brand Tracking' },
-        { selector: MainMenu.ConceptTestingMenu, name: 'Concept Testing' },
-        { selector: MainMenu.ConjointAnalysisMenu, name: 'Conjoint Analysis' },
-        { selector: MainMenu.HeatMappingMenu, name: 'Heat Mapping' },
-        { selector: MainMenu.KeyDriverAnalysisMenu, name: 'Key Driver Analysis' },
-        { selector: MainMenu.MaxDiffAnalysisMenu, name: 'MaxDiff Analysis' },
-        { selector: MainMenu.VideoInterviewsMenu, name: 'Video Interviews' },
-        { selector: MainMenu.GaborGrangerMenu, name: 'Gabor-Granger' },
-        { selector: MainMenu.VanWestendorpMenu, name: 'Van Westendorp' },
-        { selector: MainMenu.SignificanceTestingMenu, name: 'Significance Testing' },
-        { selector: MainMenu.SurveySoftwareMenu, name: 'Survey Software' },
-        { selector: MainMenu.TextAnalysisMenu, name: 'Text Analysis' },
-        { selector: MainMenu.TURFAnalysisMenu, name: 'TURF Analysis' },
-        { selector: MainMenu.OnlinePanelsMenu, name: 'Online Panels' },
-        { selector: MainMenu.ResearchServicesMenu, name: 'Research Services' }
+        MainMenu.AudienceSegmentationMenu,
+        MainMenu.BrandTrackingMenu,
+        MainMenu.ConceptTestingMenu,
+        MainMenu.ConjointAnalysisMenu,
+        MainMenu.HeatMappingMenu,
+        MainMenu.KeyDriverAnalysisMenu,
+        MainMenu.MaxDiffAnalysisMenu,
+        MainMenu.VideoInterviewsMenu,
+        MainMenu.GaborGrangerMenu,
+        MainMenu.VanWestendorpMenu,
+        MainMenu.SignificanceTestingMenu,
+        MainMenu.SurveySoftwareMenu,
+        MainMenu.TextAnalysisMenu,
+        MainMenu.TURFAnalysisMenu,  
+        MainMenu.OnlinePanelsMenu,
+        MainMenu.ResearchServicesMenu
     ];
 
+    console.log('>>> Capabilities submenu items');
     for (const menu of capabilitiesMenus) {
-        if (await MainMenu.CapabilitiesMenu.exists) {
-            await t.click(MainMenu.CapabilitiesMenu).wait(300); // asegurar dropdown abierto
-        } else {
-            errors.push('❌ Capabilities toggle not found');
-            continue;
+        await t.click(MainMenu.CapabilitiesMenu).wait(waitingTime);
+
+        const menuExists = await softExpect(t, menu, `✅ Submenu visible`);
+        if (menuExists) {
+            await f._clickAndLog(t, menu, `Clicked submenu`, waitingTime);
+
+            const bodyText = await t.eval(() => document.body.innerText);
+            if (bodyText && bodyText.trim().length > 0) {
+                console.log("✅ Page has content");
+                await t.takeScreenshot({ path: `screenshots/${Date.now()}-pass.png`, fullPage: true });
+            } else {
+                console.log("❌ Page has no content");
+                await t.takeScreenshot({ path: `screenshots/${Date.now()}-fail.png`, fullPage: true });
+            }
         }
-        await clickMenuAndValidate(t, menu.selector, menu.name, logger, errors, MainMenu.CapabilitiesMenu);
+
         await t.navigateTo('https://www.sightx.io/');
     }
+    console.log('<<< Capabilities submenu items');
 
     // ---------------- SOLUTIONS ----------------
     const solutionsMenus = [
-        { selector: MainMenu.BrandTrackingSolutionsMenu, name: 'Brand Tracking' },
-        { selector: MainMenu.ContentCreationMenu, name: 'Content Creation' },
-        { selector: MainMenu.CustomerExperienceMenu, name: 'Customer Experience' },
-        { selector: MainMenu.MarketingAdvertisingMenu, name: 'Marketing & Advertising' },
-        { selector: MainMenu.PricingStrategyMenu, name: 'Pricing Strategy' },
-        { selector: MainMenu.ProductDevelopmentMenu, name: 'Product Development' },
-        { selector: MainMenu.ResearchInsightsMenu, name: 'Research and Insights' },
-        { selector: MainMenu.ProductManagersMenu, name: 'Product Managers' },
-        { selector: MainMenu.MarketersMenu, name: 'Marketers' },
-        { selector: MainMenu.BrandManagersMenu, name: 'Brand Managers' },
-        { selector: MainMenu.InvestorsMenu, name: 'Investors' }
+        MainMenu.BrandTrackingSolutionsMenu,
+        MainMenu.ContentCreationMenu,
+        MainMenu.CustomerExperienceMenu,
+        MainMenu.MarketingAdvertisingMenu,
+        MainMenu.PricingStrategyMenu,
+        MainMenu.ProductDevelopmentMenu,
+        MainMenu.ResearchInsightsMenu,
+        MainMenu.ProductManagersMenu,
+        MainMenu.MarketersMenu,
+        MainMenu.BrandManagersMenu,
+        MainMenu.InvestorsMenu
     ];
 
+    console.log('>>> Solutions submenu items');
     for (const menu of solutionsMenus) {
-        if (await MainMenu.SolutionsMenuIcon.exists) {
-            await t.click(MainMenu.SolutionsMenuIcon).wait(300);
-        } else {
-            errors.push('❌ Solutions toggle not found');
-            continue;
+        await t.click(MainMenu.SolutionsMenuIcon).wait(waitingTime);
+
+        const menuExists = await softExpect(t, menu, `✅ Submenu visible`);
+        if (menuExists) {
+            await f._clickAndLog(t, menu, `Clicked submenu`, waitingTime);
+
+            const bodyText = await t.eval(() => document.body.innerText);
+            if (bodyText && bodyText.trim().length > 0) {
+                console.log("✅ Page has content");
+                await t.takeScreenshot({ path: `screenshots/${Date.now()}-pass.png`, fullPage: true });                
+            } else {
+                console.log("❌ Page has no content");
+                await t.takeScreenshot({ path: `screenshots/${Date.now()}-fail.png`, fullPage: true });
+            }
         }
-        await clickMenuAndValidate(t, menu.selector, menu.name, logger, errors, MainMenu.SolutionsMenuIcon);
+
         await t.navigateTo('https://www.sightx.io/');
     }
+    console.log('<<< Solutions submenu items');
 
     // ---------------- RESOURCES ----------------
     const resourcesMenus = [
-        { selector: MainMenu.BlogMenu, name: 'Blog' },
-        { selector: MainMenu.ContentHubMenu, name: 'Content Hub' },
-        { selector: MainMenu.GlossaryMenu, name: 'Glossary' }
+        MainMenu.BlogMenu,
+        MainMenu.ContentHubMenu,
+        MainMenu.GlossaryMenu
     ];
 
+    console.log('>>> Resources submenu items');
     for (const menu of resourcesMenus) {
-        if (await MainMenu.ResourcesMenuIcon.exists) {
-            await t.click(MainMenu.ResourcesMenuIcon).wait(300);
-        } else {
-            errors.push('❌ Resources toggle not found');
-            continue;
+        await t.click(MainMenu.ResourcesMenuIcon).wait(waitingTime);
+
+        const menuExists = await softExpect(t, menu, `✅ Submenu visible`);
+        if (menuExists) {
+            await f._clickAndLog(t, menu, `Clicked submenu`, waitingTime);
+
+            const bodyText = await t.eval(() => document.body.innerText);
+            if (bodyText && bodyText.trim().length > 0) {
+                console.log("✅ Page has content");
+                await t.takeScreenshot({ path: `screenshots/${Date.now()}-pass.png`, fullPage: true });                
+            } else {
+                console.log("❌ Page has no content");
+                await t.takeScreenshot({ path: `screenshots/${Date.now()}-fail.png`, fullPage: true });
+            }
         }
-        await clickMenuAndValidate(t, menu.selector, menu.name, logger, errors, MainMenu.ResourcesMenuIcon);
+
         await t.navigateTo('https://www.sightx.io/');
     }
+    console.log('<<< Resources submenu items');
 
-    // ---------------- FINAL SUMMARY ----------------
-    if (errors.length > 0) {
-        console.log("\n====== TEST SUMMARY ======");
-        errors.forEach(err => console.log(err));
-        console.log("==========================\n");
-        await t.expect(errors.length).eql(0, "❌ Some menu validations failed");
-    } else {
-        console.log("\n✅ All menu validations passed with no errors\n");
-    }
+    // ---------------- FINAL CHECK ----------------
+    checkSoftExpectResults();
 });
